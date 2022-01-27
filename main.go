@@ -1,14 +1,14 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"log"
 	"os"
-
-	"github.com/spf13/pflag"
+	"strings"
 )
 
 func main() {
@@ -16,13 +16,20 @@ func main() {
 	var path string
 	var names []string
 
-	pflag.StringVar(&path, "path", "", "Path of Go source file.")
-	pflag.StringSliceVar(&names, "names", []string{}, "Names of top-level constants to include.")
-	pflag.BoolVar(&help, "help", false, "Print usage.")
-	pflag.Parse()
+	flag.BoolVar(&help, "help", false, "Print usage.")
+	flag.Func("names", "Names of top-level constants to include.", func(s string) error {
+		if s == "" {
+			names = []string{}
+			return nil
+		}
+		names = strings.Split(s, ",")
+		return nil
+	})
+	flag.StringVar(&path, "path", "", "Path of Go source file.")
+	flag.Parse()
 
 	if help {
-		pflag.PrintDefaults()
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
