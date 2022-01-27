@@ -34,7 +34,7 @@ func (i *multivalueFlags) Has(value string) bool {
 	return ok
 }
 
-func (i *multivalueFlags) Any() bool {
+func (i *multivalueFlags) Empty() bool {
 	return len(i.values) == 0
 }
 
@@ -65,7 +65,7 @@ func main() {
 	}
 
 	for _, cd := range cds {
-		if !(names.Any() || names.Has(cd.name)) {
+		if !names.Empty() && !names.Has(cd.name) {
 			continue
 		}
 
