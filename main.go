@@ -48,13 +48,9 @@ func main() {
 	flag.StringVar(&path, "path", "", "Path of Go source file.")
 	flag.Parse()
 
-	if help {
-		flag.PrintDefaults()
+	if help || flag.NFlag() == 0 {
+		flag.Usage()
 		os.Exit(1)
-	}
-
-	if path == "" {
-		return
 	}
 
 	fset := token.NewFileSet()
