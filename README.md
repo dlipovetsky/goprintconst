@@ -11,28 +11,9 @@ This operation can be error-prone: The regular expression might be incorrect, co
 
 ## Use
 
-All constants (default):
-
 ```sh
-> goprintconst --path foo/bar.go
-MySpecial="value"
-AnotherSpecial="foo"
-ThirdSpecial="bar"
-```
-
-One constant:
-
-```sh
-> goprintconst --path foo/bar.go --names MySpecial
-MySpecial="value"
-```
-
-Two constants:
-
-```sh
-> goprintconst --path foo/bar.go --names MySpecial --names AnotherSpecial
-MySpecial="value"
-AnotherSpecial="foo"
+> goprintconst --path foo/bar.go --name MySpecial
+"value"
 ```
 
 ## Install

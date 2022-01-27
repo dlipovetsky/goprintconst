@@ -10,41 +10,13 @@ import (
 	"os"
 )
 
-type ConstDecl struct {
-	name  string
-	value string
-}
-
-type multivalueFlags struct {
-	values map[string]struct{}
-}
-
-func (i *multivalueFlags) String() string {
-	// fmt prints in key-sorted order, see https://tip.golang.org/doc/go1.12#fmt
-	return fmt.Sprint(i.values)
-}
-
-func (i *multivalueFlags) Set(value string) error {
-	i.values[value] = struct{}{}
-	return nil
-}
-
-func (i *multivalueFlags) Has(value string) bool {
-	_, ok := i.values[value]
-	return ok
-}
-
-func (i *multivalueFlags) Empty() bool {
-	return len(i.values) == 0
-}
-
 func main() {
 	var help bool
 	var path string
-	names := multivalueFlags{values: make(map[string]struct{})}
+	var name string
 
 	flag.BoolVar(&help, "help", false, "Print usage.")
-	flag.Var(&names, "name", "Name of top-level constant to include. Can be used more than once.")
+	flag.StringVar(&name, "name", "", "Name of top-level constant.")
 	flag.StringVar(&path, "path", "", "Path of Go source file.")
 	flag.Parse()
 
@@ -53,32 +25,32 @@ func main() {
 		os.Exit(1)
 	}
 
+	if path == "" {
+		log.Fatal("path must not be empty")
+	}
+
+	if name == "" {
+		log.Fatal("name must not be empty")
+	}
+
 	fset := token.NewFileSet()
 	fileAST, err := parser.ParseFile(fset, path, nil, parser.AllErrors)
 	if err != nil {
 		log.Fatalf("failed to parse %q: %s", path, err)
 	}
 
-	cds, err := TopLevelConsts(fileAST)
-	if err != nil {
-		log.Fatalf("failed to get constants: %s", err)
+	value, ok := FindTopLevelConstValue(fileAST, name)
+	if !ok {
+		log.Fatalf("failed to find top-level constant %s", name)
 	}
 
-	for _, cd := range cds {
-		if !names.Empty() && !names.Has(cd.name) {
-			continue
-		}
-
-		_, err := fmt.Printf("%s=%s\n", cd.name, cd.value)
-		if err != nil {
-			log.Printf("failed to print constant %q: %s", cd.name, err)
-		}
+	_, err = fmt.Println(value)
+	if err != nil {
+		log.Printf("failed to print constant %q: %s", name, err)
 	}
 }
 
-func TopLevelConsts(fileAST *ast.File) ([]ConstDecl, error) {
-	cds := []ConstDecl{}
-
+func FindTopLevelConstValue(fileAST *ast.File, name string) (string, bool) {
 	for _, decl := range fileAST.Decls {
 		switch decl := decl.(type) {
 		case *ast.GenDecl:
@@ -91,14 +63,13 @@ func TopLevelConsts(fileAST *ast.File) ([]ConstDecl, error) {
 				case *ast.ValueSpec:
 					// Assume that spec.Names and spec.Values are parallel arrays.
 					for i := range spec.Names {
-						cds = append(cds, ConstDecl{
-							name:  spec.Names[i].String(),
-							value: spec.Values[i].(*ast.BasicLit).Value,
-						})
+						if name == spec.Names[i].String() {
+							return spec.Values[i].(*ast.BasicLit).Value, true
+						}
 					}
 				}
 			}
 		}
 	}
-	return cds, nil
+	return "", false
 }
