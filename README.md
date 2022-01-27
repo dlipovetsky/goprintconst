@@ -13,6 +13,13 @@ This operation can be error-prone: The regular expression might be incorrect, co
 
 ```sh
 > goprintconst --file foo/bar.go --name MySpecial
+value
+```
+
+By default, string and character values are unquoted. To preserve quotes, use the `-raw=false` flag:
+
+```sh
+> goprintconst --file foo/bar.go --name MySpecial -raw=false
 "value"
 ```
 

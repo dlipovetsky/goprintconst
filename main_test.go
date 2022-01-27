@@ -48,7 +48,7 @@ func Foo() {
 				t.Fatalf("failed to parse %q: %s", "src.go", err)
 			}
 
-			got, ok := FindTopLevelConstValue(fileAST, tc.name)
+			_, got, ok := FindTopLevelConstValue(fileAST, tc.name)
 			if ok != tc.wantOk {
 				t.Errorf("ok %t, wantOk %t", ok, tc.wantOk)
 			}
