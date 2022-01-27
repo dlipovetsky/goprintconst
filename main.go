@@ -12,12 +12,12 @@ import (
 
 func main() {
 	var help bool
-	var path string
+	var filepath string
 	var name string
 
 	flag.BoolVar(&help, "help", false, "Print usage.")
+	flag.StringVar(&filepath, "file", "", "Path to Go source file.")
 	flag.StringVar(&name, "name", "", "Name of top-level constant.")
-	flag.StringVar(&path, "path", "", "Path of Go source file.")
 	flag.Parse()
 
 	if help || flag.NFlag() == 0 {
@@ -25,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if path == "" {
+	if filepath == "" {
 		log.Fatal("path must not be empty")
 	}
 
@@ -34,9 +34,9 @@ func main() {
 	}
 
 	fset := token.NewFileSet()
-	fileAST, err := parser.ParseFile(fset, path, nil, parser.AllErrors)
+	fileAST, err := parser.ParseFile(fset, filepath, nil, parser.AllErrors)
 	if err != nil {
-		log.Fatalf("failed to parse %q: %s", path, err)
+		log.Fatalf("failed to parse %q: %s", filepath, err)
 	}
 
 	value, ok := FindTopLevelConstValue(fileAST, name)

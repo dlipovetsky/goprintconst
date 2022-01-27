@@ -12,7 +12,7 @@ This operation can be error-prone: The regular expression might be incorrect, co
 ## Use
 
 ```sh
-> goprintconst --path foo/bar.go --name MySpecial
+> goprintconst --file foo/bar.go --name MySpecial
 "value"
 ```
 
