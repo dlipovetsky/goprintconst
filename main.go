@@ -45,6 +45,13 @@ func main() {
 		return
 	}
 
+	err := PrintMatchingTopLevelConstForFile(path, names)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func PrintMatchingTopLevelConstForFile(path string, names []string) error {
 	fset := token.NewFileSet()
 	fileAST, err := parser.ParseFile(fset, path, nil, parser.AllErrors)
 	if err != nil {
@@ -60,6 +67,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to process const declarations: %s", err)
 	}
+	return nil
 }
 
 func ForAllTopLevelConst(fileAST *ast.File, f func(name, value string) error) error {
