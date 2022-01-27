@@ -1,28 +1,43 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"log"
 	"os"
-
-	"github.com/spf13/pflag"
+	"strings"
 )
+
+// As suggested by https://stackoverflow.com/a/28323276
+type arrayFlags []string
+
+func (i *arrayFlags) String() string {
+	if i == nil {
+		return ""
+	}
+	return strings.Join(*i, ",")
+}
+
+func (i *arrayFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
 
 func main() {
 	var help bool
 	var path string
-	var names []string
+	var names arrayFlags
 
-	pflag.StringVar(&path, "path", "", "Path of Go source file.")
-	pflag.StringSliceVar(&names, "names", []string{}, "Names of top-level constants to include.")
-	pflag.BoolVar(&help, "help", false, "Print usage.")
-	pflag.Parse()
+	flag.BoolVar(&help, "help", false, "Print usage.")
+	flag.Var(&names, "name", "Name of top-level constant to include. Can be used more than once.")
+	flag.StringVar(&path, "path", "", "Path of Go source file.")
+	flag.Parse()
 
 	if help {
-		pflag.PrintDefaults()
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
