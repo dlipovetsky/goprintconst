@@ -38,6 +38,41 @@ func Foo() {
 			wantOk:    false,
 			wantValue: "",
 		},
+		{
+			description: "indirect top-level constant",
+			src: `package example
+const (
+	Foo = "foo"
+	Bar = Foo
+)
+`,
+			name:      "Bar",
+			wantOk:    true,
+			wantValue: `"foo"`,
+		},
+		{
+			description: "pre-declared indirect top-level constant",
+			src: `package example
+const (
+	Bar = Foo
+	Foo = "foo"
+)
+`,
+			name:      "Bar",
+			wantOk:    true,
+			wantValue: `"foo"`,
+		},
+		{
+			description: "broken indirect top-level constant",
+			src: `package example
+const (
+	Bar = Broken
+)
+`,
+			name:      "Bar",
+			wantOk:    false,
+			wantValue: "",
+		},
 	}
 
 	for _, tc := range tcs {
@@ -48,7 +83,8 @@ func Foo() {
 				t.Fatalf("failed to parse %q: %s", "src.go", err)
 			}
 
-			_, got, ok := FindTopLevelConstValue(fileAST, tc.name)
+			tok, got, ok := FindTopLevelConstValue(fileAST, tc.name)
+			t.Log(tok)
 			if ok != tc.wantOk {
 				t.Errorf("ok %t, wantOk %t", ok, tc.wantOk)
 			}

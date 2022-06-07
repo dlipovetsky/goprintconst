@@ -47,8 +47,7 @@ func main() {
 		log.Fatalf("failed to find top-level constant %s", name)
 	}
 
-	switch tok {
-	case token.STRING, token.CHAR:
+	if tok == token.STRING || tok == token.CHAR {
 		if raw {
 			value, err = strconv.Unquote(value)
 			if err != nil {
@@ -64,20 +63,29 @@ func main() {
 }
 
 func FindTopLevelConstValue(fileAST *ast.File, name string) (token.Token, string, bool) {
-	for _, decl := range fileAST.Decls {
-		switch decl := decl.(type) {
-		case *ast.GenDecl:
+	for _, d := range fileAST.Decls {
+		if decl, ok := d.(*ast.GenDecl); ok {
 			if decl.Tok != token.CONST {
 				continue
 			}
 
-			for _, spec := range decl.Specs {
-				switch spec := spec.(type) {
-				case *ast.ValueSpec:
-					// Assume that spec.Names and spec.Values are parallel arrays.
-					for i := range spec.Names {
-						if name == spec.Names[i].String() {
-							return spec.Values[i].(*ast.BasicLit).Kind, spec.Values[i].(*ast.BasicLit).Value, true
+			constMap := map[string]*ast.BasicLit{}
+			for _, s := range decl.Specs {
+				if spec, ok := s.(*ast.ValueSpec); ok {
+					for _, id := range spec.Names {
+						switch val := id.Obj.Decl.(*ast.ValueSpec).Values[0].(type) {
+						case *ast.BasicLit:
+							if id.Name == name {
+								return val.Kind, val.Value, true
+							}
+							constMap[id.Name] = val
+						case *ast.Ident:
+							if id.Name == name {
+								name = val.Name
+								if v, ok := constMap[name]; ok {
+									return v.Kind, v.Value, true
+								}
+							}
 						}
 					}
 				}
